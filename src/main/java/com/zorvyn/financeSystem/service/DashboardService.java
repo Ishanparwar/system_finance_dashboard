@@ -2,6 +2,7 @@ package com.zorvyn.financeSystem.service;
 
 import com.zorvyn.financeSystem.dto.CategorySummaryResponse;
 import com.zorvyn.financeSystem.dto.MonthlyTrendResponse;
+import com.zorvyn.financeSystem.dto.RecordResponse;
 import com.zorvyn.financeSystem.dto.SummaryResponse;
 
 import java.util.List;
@@ -12,4 +13,6 @@ public interface DashboardService {
     List<CategorySummaryResponse> getCategorySummary();
 
     List<MonthlyTrendResponse> getMonthlyTrends();
+
+    List<RecordResponse> getRecentActivity();
 }

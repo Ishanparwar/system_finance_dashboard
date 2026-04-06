@@ -2,6 +2,7 @@ package com.zorvyn.financeSystem.controller;
 
 import com.zorvyn.financeSystem.dto.CategorySummaryResponse;
 import com.zorvyn.financeSystem.dto.MonthlyTrendResponse;
+import com.zorvyn.financeSystem.dto.RecordResponse;
 import com.zorvyn.financeSystem.dto.SummaryResponse;
 import com.zorvyn.financeSystem.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +32,10 @@ public class DashboardController {
     @GetMapping("/monthly-trends")
     public List<MonthlyTrendResponse> getMonthlyTrends() {
         return dashboardService.getMonthlyTrends();
+    }
+
+    @GetMapping("/recent-activity")
+    public List<RecordResponse> getRecentActivity() {
+        return dashboardService.getRecentActivity();
     }
 }

@@ -1,5 +1,9 @@
 # Finance Data Processing and Access Control Backend
 
+> Backend system with RBAC and financial analytics for dashboard use cases.
+
+---
+
 ## 📌 Overview
 This project implements a backend system for managing financial records with role-based access control (RBAC) and dashboard analytics.
 
@@ -8,73 +12,107 @@ The system allows different types of users to interact with a shared financial d
 ---
 
 ## 🏗️ Tech Stack
-*   Java
-*   Spring Boot
-*   Spring Data JPA
-*   MySQL
-*   Lombok
+*   **Java**
+*   **Spring Boot**
+*   **Spring Data JPA**
+*   **MySQL**
+*   **Lombok**
 
 ---
 
-## 🧠 System Design
-The application follows a layered monolithic architecture:
-**Controller → Service → Repository → Database**
+## 🏗️ High-Level Design
+The system follows a layered monolithic architecture:
+*   **Controller layer**: Handles API requests.
+*   **Service layer**: Contains business logic and RBAC enforcement.
+*   **Repository layer**: Interacts with the database.
+*   **MySQL**: Used for persistent storage.
 
-*   **Controller Layer:** Handles API requests and responses
-*   **Service Layer:** Contains business logic and access control
-*   **Repository Layer:** Manages database interactions
-*   **Database:** Stores users and financial records
+*All financial data is shared across users, and access is controlled via roles.*
+
+---
+
+## 🔧 Low-Level Design
+
+### Entities
+*   **User**: `id`, `name`, `email`, `role`, `status`
+*   **FinancialRecord**: `id`, `amount`, `type`, `category`, `date`, `createdBy`, `isDeleted`
+
+### Relationships
+*   **FinancialRecord → Many-to-One → User**: Linked via `createdBy` for audit purposes.
+
+### Key Logic
+*   **RBAC**: Enforced in the service layer.
+*   **Soft Delete**: Implemented using the `isDeleted` flag.
+*   **Filtering**: Handled using dynamic JPQL queries.
+*   **Aggregations**: Implemented using native SQL queries.
 
 ---
 
 ## 👤 User Roles & Access Control
-The system implements Role-Based Access Control (RBAC):
 
 
-| Role     | Permissions                     |
-| :------- | :------------------------------ |
-| Viewer   | View records and dashboard      |
-| Analyst  | Create and update records       |
-| Admin    | Full access (users + records)   |
+| Role    | Permissions                    |
+| :------ | :----------------------------- |
+| Viewer  | View records and dashboard     |
+| Analyst | Create and update records      |
+| Admin   | Full access (users + records)  |
 
 **Key Rules:**
-*   Only Admin can create users and change user status
-*   Viewer has read-only access
-*   Inactive users cannot perform actions
+*   Only Admin can create users and change user status.
+*   Viewer has read-only access.
+*   Inactive users cannot perform actions.
 
 ---
 
-## 🔐 User Management
-*   Create users (Admin only)
-*   Assign roles (Viewer / Analyst / Admin)
-*   Activate / deactivate users (soft control via status)
+## 🔌 API Endpoints
 
-**Bootstrap Logic:**
-*   The first user must be an Admin
-*   After that, only Admins can create users
+### 🔐 Authentication Note
+Authentication is simulated using a `userId` query parameter.
+*Example:* `POST /records?userId=1`
+
+### User Management
+
+| Endpoint | Method | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `/users` | `POST` | Create user | Admin (First user bootstrap allowed) |
+| `/users/{id}` | `GET` | Get user details | Admin |
+| `/users/{id}/status` | `PATCH` | Activate/Deactivate user | Admin |
+
+### Financial Records
+
+| Endpoint | Method | Description | Access |
+| :--- | :--- | :--- | :--- |
+| `/records` | `POST` | Create record | Analyst, Admin |
+| `/records` | `GET` | Get records (with filters) | All roles |
+| `/records/{id}` | `PUT` | Update record | Analyst, Admin |
+| `/records/{id}` | `DELETE`| Soft delete record | Admin |
+
+### Dashboard
+
+| Endpoint                      | Method | Description | Access |
+|:------------------------------| :--- | :--- | :--- |
+| `/dashboard/summary`          | `GET` | Get financial summary | All roles |
+| `/dashboard/category-summary` | `GET` | Category-wise totals | All roles |
+| `/dashboard/monthly-trends`   | `GET` | Monthly trends | All roles |
+| `/dashboard/recent-activity`  | `GET` | Latest financial records | All roles |
 
 ---
 
 ## 💰 Financial Records
-Each financial record contains:
+Each financial record represents a system-level financial transaction (not individual user data).
+
+**Fields include:**
 *   Amount
 *   Type (INCOME / EXPENSE)
 *   Category
 *   Date
 *   Notes
-*   CreatedBy (audit purpose)
-
-**Features:**
-*   Create record
-*   Update record
-*   Soft delete (isDeleted flag)
-*   Filter records by: Type, Category, and Date range
+*   CreatedBy (for audit tracking)
 
 ---
 
 ## 🔎 Filtering Support
 The system supports dynamic filtering. Multiple filters can be combined:
-
 *   `GET /records?type=INCOME`
 *   `GET /records?category=FOOD`
 *   `GET /records?startDate=2026-04-01&endDate=2026-04-10`
@@ -82,74 +120,75 @@ The system supports dynamic filtering. Multiple filters can be combined:
 ---
 
 ## 📊 Dashboard APIs
-The system provides aggregated insights:
 
 ### Summary
-`GET /dashboard/summary`
-*   **Returns:** Total Income, Total Expense, Net Balance
+*   **Returns:** Total Income, Total Expense, Net Balance.
 
 ### Category Summary
-`GET /dashboard/category-summary`
-*   **Returns:** Total spending per category
+*   **Returns:** Total spending grouped by category.
 
 ### Monthly Trends
-`GET /dashboard/monthly-trends`
-*   **Returns:** Month-wise financial trends
+*   **Returns:** Month-wise financial aggregation.
+
+### Recent Activity 
+*   **Returns:** The latest financial records ordered by date and insertion order to ensure deterministic results.
 
 ---
 
 ## ⚠️ Validation & Error Handling
-*   Global exception handling implemented
-*   Proper HTTP status codes
-*   Input validation for: Dates, User roles, and Status values
+*   Global exception handling implemented.
+*   Proper HTTP status codes used.
+*   Input validation for: Dates, Roles, and Status values.
 
 ---
 
 ## 💾 Data Persistence
-*   MySQL used for storage
-*   JPA/Hibernate for ORM
-*   Soft delete implemented using `isDeleted`
+*   MySQL used for storage.
+*   JPA/Hibernate for ORM.
+*   Soft delete implemented using `isDeleted`.
 
 ---
 
 ## 🚀 How to Run
-1.  Clone the repository
-2.  Configure MySQL in `application.properties`
-3.  Create database:
+1.  **Clone** the repository.
+2.  **Configure** MySQL in `application.properties`.
+3.  **Create Database**:
     ```sql
     CREATE DATABASE finance_dashboard;
     ```
-4.  Run the Spring Boot application
-5.  Test APIs using Postman
+4.  **Run** the Spring Boot application.
+5.  **Test** APIs using Postman.
 
-### 🧪 Sample API Flow
-1.  Create Admin user
-2.  Create Analyst/Viewer
-3.  Add financial records
-4.  Fetch dashboard insights
+---
+
+## 🧪 Sample Flow
+1.  Create Admin user (bootstrap).
+2.  Create Analyst/Viewer via the Admin account.
+3.  Add financial records.
+4.  Fetch dashboard insights.
 
 ---
 
 ## 🧠 Design Decisions
-*   Used service-layer RBAC instead of interceptors for simplicity and clarity
-*   Implemented soft delete to preserve audit history
-*   Used dynamic query filtering for scalability
-*   Maintained DTO separation for clean API contracts
+*   **Service-layer RBAC**: For simplicity and clarity.
+*   **Soft Delete**: To preserve data integrity and audit history.
+*   **Dynamic Filtering**: Scalable query generation.
+*   **DTO Separation**: For clean API contracts and security.
 
 ---
 
 ## ⚖️ Assumptions
-*   Authentication is mocked using `userId` parameter
-*   No JWT implemented to keep focus on core backend logic
-*   Financial data is shared across users (system-level data)
+*   Authentication is mocked using `userId`.
+*   No JWT implemented to keep focus on core backend logic.
+*   Financial data is shared across all users (system-level data).
 
 ---
 
-## ✨ Improvements (Future Scope)
-*   JWT-based authentication
-*   Pagination support
-*   Unit & integration tests
-*   Role hierarchy (Super Admin)
+## ✨ Future Improvements
+*   JWT-based authentication.
+*   Pagination support.
+*   Unit and integration testing.
+*   Role hierarchy (Super Admin).
 
 ---
 

@@ -2,7 +2,9 @@ package com.zorvyn.financeSystem.service.impl;
 
 import com.zorvyn.financeSystem.dto.CategorySummaryResponse;
 import com.zorvyn.financeSystem.dto.MonthlyTrendResponse;
+import com.zorvyn.financeSystem.dto.RecordResponse;
 import com.zorvyn.financeSystem.dto.SummaryResponse;
+import com.zorvyn.financeSystem.model.FinancialRecord;
 import com.zorvyn.financeSystem.repository.FinancialRecordRepository;
 import com.zorvyn.financeSystem.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +53,27 @@ public class DashboardServiceImpl implements DashboardService {
                         ((Number) row[1]).doubleValue()
                 ))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RecordResponse> getRecentActivity() {
+
+        List<FinancialRecord> records =
+                financialRecordRepository.findTop5ByIsDeletedFalseOrderByDateDescIdDesc();
+
+        return records.stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
+    }
+    private RecordResponse mapToResponse(FinancialRecord record) {
+        return RecordResponse.builder()
+                .id(record.getId())
+                .amount(record.getAmount())
+                .type(record.getType())
+                .category(record.getCategory())
+                .date(record.getDate())
+                .notes(record.getNotes())
+                .createdByUserId(record.getCreatedBy().getId())
+                .build();
     }
 }

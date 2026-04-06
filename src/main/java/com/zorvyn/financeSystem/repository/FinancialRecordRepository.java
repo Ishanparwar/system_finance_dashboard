@@ -9,6 +9,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface FinancialRecordRepository extends JpaRepository<FinancialRecord, Long> {
+    List<FinancialRecord> findTop5ByIsDeletedFalseOrderByDateDescIdDesc();
 
     @Query(value = """
     SELECT 
