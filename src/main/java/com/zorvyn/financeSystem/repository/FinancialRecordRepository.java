@@ -12,22 +12,22 @@ public interface FinancialRecordRepository extends JpaRepository<FinancialRecord
     List<FinancialRecord> findTop5ByIsDeletedFalseOrderByDateDescIdDesc();
 
     @Query(value = """
-    SELECT 
-        SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS totalIncome,
-        SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpense
-    FROM financial_records
-    WHERE is_deleted = false
-    """, nativeQuery = true)
+            SELECT 
+                SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) AS totalIncome,
+                SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) AS totalExpense
+            FROM financial_records
+            WHERE is_deleted = false
+            """, nativeQuery = true)
     List<Object[]> getSummary();
 
     @Query("""
-SELECT r FROM FinancialRecord r
-WHERE r.isDeleted = false
-AND (:type IS NULL OR r.type = :type)
-AND (:category IS NULL OR LOWER(r.category) = LOWER(:category))
-AND (:startDate IS NULL OR r.date >= :startDate)
-AND (:endDate IS NULL OR r.date <= :endDate)
-""")
+            SELECT r FROM FinancialRecord r
+            WHERE r.isDeleted = false
+            AND (:type IS NULL OR r.type = :type)
+            AND (:category IS NULL OR LOWER(r.category) = LOWER(:category))
+            AND (:startDate IS NULL OR r.date >= :startDate)
+            AND (:endDate IS NULL OR r.date <= :endDate)
+            """)
     List<FinancialRecord> filterRecords(
             RecordType type,
             String category,
@@ -36,19 +36,35 @@ AND (:endDate IS NULL OR r.date <= :endDate)
     );
 
     @Query(value = """
-    SELECT category, SUM(amount)
-    FROM financial_records
-    WHERE is_deleted = false
-    GROUP BY category
-    """, nativeQuery = true)
+            SELECT category, type, SUM(amount)
+            FROM financial_records
+            WHERE is_deleted = false
+            GROUP BY category, type
+            """, nativeQuery = true)
     List<Object[]> getCategorySummary();
 
     @Query(value = """
-    SELECT MONTH(date), SUM(amount)
-    FROM financial_records
-    WHERE is_deleted = false
-    GROUP BY MONTH(date)
-    ORDER BY MONTH(date)
-    """, nativeQuery = true)
+            SELECT 
+                MONTH(date),
+                SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END),
+                SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END)
+            FROM financial_records
+            WHERE is_deleted = false
+            GROUP BY MONTH(date)
+            ORDER BY MONTH(date)
+            """, nativeQuery = true)
     List<Object[]> getMonthlyTrends();
+
+    @Query(value = """
+            SELECT 
+                MONTH(date),
+                SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END),
+                SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END)
+            FROM financial_records
+            WHERE is_deleted = false
+            AND MONTH(date) = :month
+            AND YEAR(date) = :year
+            GROUP BY MONTH(date)
+            """, nativeQuery = true)
+    List<Object[]> getMonthlyTrendByMonthAndYear(Integer month, Integer year);
 }

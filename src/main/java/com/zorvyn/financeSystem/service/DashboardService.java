@@ -12,7 +12,7 @@ public interface DashboardService {
 
     List<CategorySummaryResponse> getCategorySummary();
 
-    List<MonthlyTrendResponse> getMonthlyTrends();
+    public List<MonthlyTrendResponse> getMonthlyTrends(Integer month, Integer year);
 
     List<RecordResponse> getRecentActivity();
 }

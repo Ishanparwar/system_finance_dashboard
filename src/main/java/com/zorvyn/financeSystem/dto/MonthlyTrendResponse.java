@@ -7,5 +7,7 @@ import lombok.Data;
 @AllArgsConstructor
 public class MonthlyTrendResponse {
     private Integer month;
-    private Double totalAmount;
+    private Double totalIncome;
+    private Double totalExpense;
+    private Double netAmount;
 }

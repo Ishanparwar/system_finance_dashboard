@@ -4,7 +4,9 @@ import com.zorvyn.financeSystem.dto.CategorySummaryResponse;
 import com.zorvyn.financeSystem.dto.MonthlyTrendResponse;
 import com.zorvyn.financeSystem.dto.RecordResponse;
 import com.zorvyn.financeSystem.dto.SummaryResponse;
+import com.zorvyn.financeSystem.exception.BadRequestException;
 import com.zorvyn.financeSystem.model.FinancialRecord;
+import com.zorvyn.financeSystem.model.enums.RecordType;
 import com.zorvyn.financeSystem.repository.FinancialRecordRepository;
 import com.zorvyn.financeSystem.service.DashboardService;
 import lombok.RequiredArgsConstructor;
@@ -37,21 +39,62 @@ public class DashboardServiceImpl implements DashboardService {
         return results.stream()
                 .map(row -> new CategorySummaryResponse(
                         (String) row[0],
-                        ((Number) row[1]).doubleValue()
+                        ((Number) row[2]).doubleValue(),
+                        RecordType.valueOf((String) row[1])
                 ))
                 .collect(Collectors.toList());
     }
 
     @Override
-    public List<MonthlyTrendResponse> getMonthlyTrends() {
+    public List<MonthlyTrendResponse> getMonthlyTrends(Integer month, Integer year) {
+
+        if (month != null && year != null) {
+            return getSingleMonthData(month, year);
+        } else {
+            return getAllMonthsTrends();
+        }
+    }
+
+    public List<MonthlyTrendResponse> getAllMonthsTrends() {
 
         List<Object[]> results = financialRecordRepository.getMonthlyTrends();
 
         return results.stream()
-                .map(row -> new MonthlyTrendResponse(
-                        ((Number) row[0]).intValue(),
-                        ((Number) row[1]).doubleValue()
-                ))
+                .map(row -> {
+                    double income = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+                    double expense = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+
+                    return new MonthlyTrendResponse(
+                            ((Number) row[0]).intValue(),
+                            income,
+                            expense,
+                            income - expense
+                    );
+                })
+                .collect(Collectors.toList());
+    }
+
+    private List<MonthlyTrendResponse> getSingleMonthData(Integer month, Integer year) {
+
+        if (month != null && (month < 1 || month > 12)) {
+            throw new BadRequestException("Invalid month");
+        }
+
+        List<Object[]> results =
+                financialRecordRepository.getMonthlyTrendByMonthAndYear(month, year);
+
+        return results.stream()
+                .map(row -> {
+                    double income = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+                    double expense = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+
+                    return new MonthlyTrendResponse(
+                            ((Number) row[0]).intValue(),
+                            income,
+                            expense,
+                            income - expense
+                    );
+                })
                 .collect(Collectors.toList());
     }
 

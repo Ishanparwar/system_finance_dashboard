@@ -93,7 +93,7 @@ Authentication is simulated using a `userId` query parameter.
 |:------------------------------| :--- | :--- | :--- |
 | `/dashboard/summary`          | `GET` | Get financial summary | All roles |
 | `/dashboard/category-summary` | `GET` | Category-wise totals | All roles |
-| `/dashboard/monthly-trends`   | `GET` | Monthly trends | All roles |
+| `/dashboard/monthly-trends`   | `GET` | Monthly trends (supports optional month & year filtering) | All roles |
 | `/dashboard/recent-activity`  | `GET` | Latest financial records | All roles |
 
 ---
@@ -127,11 +127,27 @@ The system supports dynamic filtering. Multiple filters can be combined:
 ### Category Summary
 *   **Returns:** Total spending grouped by category.
 
-### Monthly Trends
-*   **Returns:** Month-wise financial aggregation.
-
 ### Recent Activity 
 *   **Returns:** The latest financial records ordered by date and insertion order to ensure deterministic results.
+
+### Monthly Trends
+*   **Monthly Trends Behavior:** The `/dashboard/monthly-trends` endpoint supports both aggregated and filtered views:
+
+- **Without parameters**:
+    - Returns month-wise aggregated income, expense, and net amount across all available data.
+    - Example:
+      ```
+      GET /dashboard/monthly-trends
+      ```
+
+- **With `month` and `year` parameters**:
+    - Returns data for a specific month.
+    - Example:
+      ```
+      GET /dashboard/monthly-trends?month=4&year=2026
+      ```
+
+This design allows the endpoint to serve both dashboard visualization and targeted data queries.
 
 ---
 
@@ -181,13 +197,23 @@ The system supports dynamic filtering. Multiple filters can be combined:
 *   Authentication is mocked using `userId`.
 *   No JWT implemented to keep focus on core backend logic.
 *   Financial data is shared across all users (system-level data).
+*   **Analyst** users are allowed to **create** and **update** financial records, as they are typically responsible for managing and analyzing financial data. **Admin** users retain full control including **user management** and **deletion operations**.
 
+
+---
+
+## 🧪 Testing
+
+The system has been tested using a combination of manual and automated approaches:
+
+- **Black-box testing**: All APIs were tested via Postman to validate request/response behavior, edge cases, and access control rules.
+- **Unit testing**: Core business logic such as role-based access control, validation, and edge cases are covered using unit tests.
+
+This ensures correctness, reliability, and expected behavior under different scenarios.
 ---
 
 ## ✨ Future Improvements
 *   JWT-based authentication.
-*   Pagination support.
-*   Unit and integration testing.
 *   Role hierarchy (Super Admin).
 
 ---
