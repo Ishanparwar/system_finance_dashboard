@@ -185,6 +185,11 @@ This design allows the endpoint to serve both dashboard visualization and target
 
 ---
 
+## 🔗 Live API Documentation
+https://documenter.getpostman.com/view/53743941/2sBXiqFp2E
+
+---
+
 ## 🧠 Design Decisions
 *   **Service-layer RBAC**: For simplicity and clarity.
 *   **Soft Delete**: To preserve data integrity and audit history.
